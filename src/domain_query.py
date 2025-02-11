@@ -116,6 +116,9 @@ def format_domain_data(domain_data, domain_name):
         try:
             expire_datetime = datetime.strptime(expire_date, '%Y-%m-%d')
             remaining_days = (expire_datetime - datetime.now()).days
+            # 如果域名已过期（剩余天数小于等于0），返回None
+            if remaining_days <= 0:
+                return None
         except Exception as e:
             logger.error(f"计算剩余天数失败: {str(e)}")
             remaining_days = None

@@ -82,19 +82,30 @@ def main():
                 logger.info(f"开始保存账号 {domain_name} 的域名数据到数据库...")
                 success_count = 0
                 total_count = len(domains)
+                valid_count = 0
                 for domain in domains:
                     formatted_domain = format_domain_data(domain, domain_name)
-                    if db.save_resource(formatted_domain, batch_number):
-                        success_count += 1
-                    else:
-                        logger.error(f"保存域名数据失败: {domain_name} - {domain.get('domain_name', '')}")
-                logger.info(f"账号 {domain_name} 的域名数据保存完成，成功：{success_count}/{total_count}")
+                    # 只处理未过期的域名
+                    if formatted_domain:
+                        valid_count += 1
+                        if db.save_resource(formatted_domain, batch_number):
+                            success_count += 1
+                        else:
+                            logger.error(f"保存域名数据失败: {domain_name} - {domain.get('domain_name', '')}")
+                logger.info(f"账号 {domain_name} 的域名数据保存完成，成功：{success_count}/{valid_count}（总域名数：{total_count}）")
             
             # 收集账号数据用于通知
-            all_account_domains.append({
-                "account_name": domain_name,
-                "domains": domains
-            })
+            valid_domains = []
+            for domain in domains:
+                formatted_domain = format_domain_data(domain, domain_name)
+                if formatted_domain:  # 只收集未过期的域名
+                    valid_domains.append(domain)
+            
+            if valid_domains:  # 只有当有未过期的域名时才添加到通知列表
+                all_account_domains.append({
+                    "account_name": domain_name,
+                    "domains": valid_domains
+                })
         else:
             logger.error(f"查询账号 {domain_name} 域名失败: {domain_result.get('message', '未知错误')}")
     
