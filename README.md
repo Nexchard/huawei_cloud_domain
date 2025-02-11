@@ -134,7 +134,7 @@ RESOURCE_ALERT_DAYS=65
 
 ## 数据库表结构
 ```sql
-CREATE TABLE IF NOT EXISTS resources (
+CREATE TABLE IF NOT EXISTS domains (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     account_name VARCHAR(255) NOT NULL COMMENT '账号名称',
     resource_name VARCHAR(255) NOT NULL COMMENT '资源名称',
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS resources (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_account_resource (account_name, resource_name),
     INDEX idx_batch (batch_number)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='资源信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='域名信息表';
 ```
 
 ## 运行方式

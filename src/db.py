@@ -29,7 +29,7 @@ class Database:
             raise e
 
     def save_resource(self, domain_data, batch_number):
-        """保存域名数据到resources表"""
+        """保存域名数据到domains表"""
         try:
             if not self.connection or not self.connection.is_connected():
                 self.connect()
@@ -37,7 +37,7 @@ class Database:
             cursor = self.connection.cursor()
             
             sql = """
-                INSERT INTO resources (
+                INSERT INTO domains (
                     account_name, resource_name, resource_id, service_type,
                     region, expire_time, project_name, remaining_days,
                     batch_number
@@ -78,7 +78,7 @@ class Database:
             logger.info(f"成功保存域名数据: {domain_data['account_name']} - {domain_data['resource_name']}")
             return True
         except Exception as e:
-            logger.error(f"保存资源数据失败: {str(e)}")
+            logger.error(f"保存域名数据失败: {str(e)}")
             if self.connection:
                 self.connection.rollback()
             return False
