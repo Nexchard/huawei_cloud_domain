@@ -109,8 +109,13 @@ class DomainQuery:
             }
         }
 
-def format_domain_data(domain_data, domain_name):
-    """格式化域名数据用于数据库存储"""
+def format_domain_data(domain_data, account_name, domain_name):
+    """格式化域名数据用于数据库存储
+    Args:
+        domain_data: 域名数据
+        account_name: 账号显示名称
+        domain_name: IAM用户所属账号名（用于获取token）
+    """
     expire_date = domain_data.get('expire_date')
     if expire_date:
         try:
@@ -126,7 +131,7 @@ def format_domain_data(domain_data, domain_name):
         remaining_days = None
     
     return {
-        'account_name': domain_name,
+        'account_name': account_name,  # 使用新的account_name
         'resource_name': domain_data.get('domain_name'),
         'resource_id': domain_data.get('domain_name'),  # 域名作为资源ID
         'service_type': 'domain',  # 固定为domain类型

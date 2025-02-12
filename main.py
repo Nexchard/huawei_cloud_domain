@@ -37,6 +37,7 @@ def main():
     accounts = []
     index = 1
     while True:
+        account_name = os.getenv(f'ACCOUNT{index}_NAME')
         domain_name = os.getenv(f'ACCOUNT{index}_DOMAIN_NAME')
         username = os.getenv(f'ACCOUNT{index}_USERNAME')
         password = os.getenv(f'ACCOUNT{index}_PASSWORD')
@@ -44,7 +45,12 @@ def main():
         if not domain_name or not username or not password:
             break
         
+        # 如果没有配置ACCOUNT{index}_NAME，则使用domain_name作为默认值
+        if not account_name:
+            account_name = domain_name
+        
         accounts.append({
+            "account_name": account_name,
             "domain_name": domain_name,
             "username": username,
             "password": password
@@ -61,11 +67,12 @@ def main():
     
     # 查询每个账号的域名信息
     for account in accounts:
+        account_name = account["account_name"]
         domain_name = account["domain_name"]
         username = account["username"]
         password = account["password"]
         
-        logger.info(f"开始查询账号 {domain_name} 的域名信息")
+        logger.info(f"开始查询账号 {account_name} 的域名信息")
         
         # 初始化域名查询客户端
         domain_client = DomainQuery(domain_name, username, password)
@@ -75,39 +82,39 @@ def main():
         
         if domain_result["success"]:
             domains = domain_result["data"]["domains"]
-            logger.info(f"账号 {domain_name} 查询到 {len(domains)} 个域名")
+            logger.info(f"账号 {account_name} 查询到 {len(domains)} 个域名")
             
             # 保存到数据库
             if db:
-                logger.info(f"开始保存账号 {domain_name} 的域名数据到数据库...")
+                logger.info(f"开始保存账号 {account_name} 的域名数据到数据库...")
                 success_count = 0
                 total_count = len(domains)
                 valid_count = 0
                 for domain in domains:
-                    formatted_domain = format_domain_data(domain, domain_name)
+                    formatted_domain = format_domain_data(domain, account_name, domain_name)
                     # 只处理未过期的域名
                     if formatted_domain:
                         valid_count += 1
                         if db.save_resource(formatted_domain, batch_number):
                             success_count += 1
                         else:
-                            logger.error(f"保存域名数据失败: {domain_name} - {domain.get('domain_name', '')}")
-                logger.info(f"账号 {domain_name} 的域名数据保存完成，成功：{success_count}/{valid_count}（总域名数：{total_count}）")
+                            logger.error(f"保存域名数据失败: {account_name} - {domain.get('domain_name', '')}")
+                logger.info(f"账号 {account_name} 的域名数据保存完成，成功：{success_count}/{valid_count}（总域名数：{total_count}）")
             
             # 收集账号数据用于通知
             valid_domains = []
             for domain in domains:
-                formatted_domain = format_domain_data(domain, domain_name)
+                formatted_domain = format_domain_data(domain, account_name, domain_name)
                 if formatted_domain:  # 只收集未过期的域名
                     valid_domains.append(domain)
             
             if valid_domains:  # 只有当有未过期的域名时才添加到通知列表
                 all_account_domains.append({
-                    "account_name": domain_name,
+                    "account_name": account_name,
                     "domains": valid_domains
                 })
         else:
-            logger.error(f"查询账号 {domain_name} 域名失败: {domain_result.get('message', '未知错误')}")
+            logger.error(f"查询账号 {account_name} 域名失败: {domain_result.get('message', '未知错误')}")
     
     # 发送通知
     if all_account_domains:
